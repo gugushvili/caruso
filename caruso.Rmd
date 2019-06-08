@@ -1,13 +1,10 @@
 ---
 title: "De-noising Caruso's recording"
-<<<<<<< HEAD
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
  encoding=encoding,
  output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
-=======
->>>>>>> 0093daf0af4fa181f1478863ba6d1b5f57a19f7f
 author: "Shota Gugushvili"
 date: June 8, 2019
 output:
@@ -20,7 +17,7 @@ link-citations: true
 
 [**Enrico Caruso**](https://en.wikipedia.org/wiki/Enrico_Caruso) (1873&ndash;1921) was a famous Italian tenor, who sang to great acclaim in major opera houses throughout the world. A good deal of his popularity was due to numerous commercial audio recordings he made. Despite primitive equipment of the time, **Caruso**'s voice recorded extremely well, and therein lay his advantage over many of his competitors. Plus, of course, he was a rare, consummate artist, and his was a truly exceptional voice.
 
-In this document, I'll use an excerpt from **Caruso**'s recording of *E lucean le stelle* (a tenor aria from **Giacomo Puccini**'s opera [**Tosca**](https://en.wikipedia.org/wiki/Tosca)^[[**Giacomo Puccini**](https://en.wikipedia.org/wiki/Giacomo_Puccini) (1858&ndash;1924) was arguably the last truly major Italian operatic composer. His works enjoy enduring popularity in operatic circles. For instance, according to statistics published by [Operabase](https://www.operabase.com/), in 2017&ndash;2018 there were 136 productions of **Tosca** worldwide, with a total of 553 performances. This puts **Tosca** in the lofty 5th position among the most performed operas of the previous season.]) to illustrate an amusing fact that residuals in the (non-parametric) regression analysis can not only be *displayed*, but also *heard*.
+In this document, I'll use an excerpt from **Caruso**'s recording of *E lucevan le stelle* (a tenor aria from **Giacomo Puccini**'s opera [**Tosca**](https://en.wikipedia.org/wiki/Tosca)^[[**Giacomo Puccini**](https://en.wikipedia.org/wiki/Giacomo_Puccini) (1858&ndash;1924) was arguably the last truly major Italian operatic composer. His works enjoy enduring popularity in operatic circles. For instance, according to statistics published by [Operabase](https://www.operabase.com/), in 2017&ndash;2018 there were 136 productions of **Tosca** worldwide, with a total of 553 performances. This puts **Tosca** in the lofty 5th position among the most performed operas of the previous season.]) to illustrate an amusing fact that residuals in the (non-parametric) regression analysis can not only be *displayed*, but also *heard*.
 
 ## Data
 
@@ -34,7 +31,7 @@ library(tuneR)
 library(EbayesThresh)
 ```
 
-Now the core issue. A digital signal of the aria (at the sampling rate 8192 Hz) is included in [**WaveLab**](http://statweb.stanford.edu/~wavelab/Wavelab_850/index_wavelab850.html), a free library of **Matlab** routines for wavelet analysis. No further information on the recording is provided, but it can be surmised that it was made sometime during the first decade of the 20th century^[Throughout his career, **Caruso** recorded *E lucean le stelle* several times. The piano accompaniment that we hear in the **WaveLab** recording would fit the following discs: Path&eacute; from 1901 (matrix number 84004), Zonophone from 1902 (matrix number X 1553), or Gramophone Typewriter from 1903 (matrix number 52349).]. You can download the dataset [here](caruso.txt)^[Place the file in the folder *data* in your working directory.]. After loading the .txt file in **R**, the data can be visualised as in the plot below.
+Now the core issue. A digital signal of the aria (at the sampling rate 8192 Hz) is included in [**WaveLab**](http://statweb.stanford.edu/~wavelab/Wavelab_850/index_wavelab850.html), a free library of **Matlab** routines for wavelet analysis. No further information on the recording is provided, but it can be surmised that it was made sometime during the first decade of the 20th century^[Throughout his career, **Caruso** recorded *E lucevan le stelle* several times. The piano accompaniment that we hear in the **WaveLab** recording would fit the following discs: Path&eacute; from 1901 (matrix number 84004), Zonophone from 1902 (matrix number X 1553), or Gramophone Typewriter from 1903 (matrix number 52349).]. You can download the dataset [here](caruso.txt)^[Place the file in the folder *data* in your working directory.]. After loading the .txt file in **R**, the data can be visualised as in the plot below.
 
 ```{r, echo = TRUE}
 n <- 48000
