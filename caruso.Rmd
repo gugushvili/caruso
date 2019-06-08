@@ -1,0 +1,118 @@
+---
+title: "De-noising Caruso's recording"
+author: "Shota Gugushvili"
+date: June 8, 2019
+output:
+  tufte::tufte_html: default
+bibliography: caruso.bib
+link-citations: true
+---
+
+## Caruso's recording
+
+[**Enrico Caruso**](https://en.wikipedia.org/wiki/Enrico_Caruso) (1873&ndash;1921) was a famous Italian tenor, who sang to great acclaim in major opera houses throughout the world. A good deal of his popularity was due to numerous commercial audio recordings he made. Despite primitive equipment of the time, **Caruso**'s voice recorded extremely well, and therein lay his advantage over many of his competitors. Plus, of course, he was a rare, consummate artist, and his was a truly exceptional voice.
+
+In this document, I'll use an excerpt from **Caruso**'s recording of *E lucean le stelle* (a tenor aria from **Giacomo Puccini**'s opera [**Tosca**](https://en.wikipedia.org/wiki/Tosca)^[[**Giacomo Puccini**](https://en.wikipedia.org/wiki/Giacomo_Puccini) (1858&ndash;1924) was arguably the last truly major Italian operatic composer. His works enjoy enduring popularity in operatic circles. For instance, according to statistics published by [Operabase](https://www.operabase.com/), in 2017&ndash;2018 there were 136 productions of **Tosca** worldwide, with a total of 553 performances. This puts **Tosca** in the lofty 5th position among the most performed operas of the previous season.]) to illustrate an amusing fact that residuals in the (non-parametric) regression analysis can not only be *displayed*, but also *heard*.
+
+## Data
+
+First some preliminaries: I'll rely on the following **R** packages in this document.
+
+```{r, echo=TRUE, include=TRUE, results='hide', warning=FALSE, message=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(waveslim)
+library(tuneR)
+library(EbayesThresh)
+```
+
+Now the core issue. A digital signal of the aria (at the sampling rate 8192 Hz) is included in [**WaveLab**](http://statweb.stanford.edu/~wavelab/Wavelab_850/index_wavelab850.html), a free library of **Matlab** routines for wavelet analysis. No further information on the recording is provided, but it can be surmised that it was made sometime during the first decade of the 20th century^[Throughout his career, **Caruso** recorded *E lucean le stelle* several times. The piano accompaniment that we hear in the **WaveLab** recording would fit the following discs: Path&eacute; from 1901 (matrix number 84004), Zonophone from 1902 (matrix number X 1553), or Gramophone Typewriter from 1903 (matrix number 52349).]. You can download the dataset [here](caruso.txt)^[Place the file in the folder *data* in your working directory.]. After loading the .txt file in **R**, the data can be visualised as in the plot below.
+
+```{r, echo = TRUE}
+n <- 48000
+caruso <- read.table("data/caruso.txt")[1:n,1]
+ggplot()+
+  geom_line(mapping = aes(x = 1:n, y = caruso)) +
+  xlab("n") +
+  ylab("signal")
+```
+
+Rather than looking at the plot, admittedly it's more enlightening to *listen* to the recording. In **R**, one can either export the signal as a wave file (using the **tuneR** package) and play it externally, or call a command line audio player. The code for the latter option is platform-dependent and requires some tuning^[On Mac, you can employ a little utility called **Play**: download it from [here](http://www.hieper.nl/html/play.html). Next use the **tuneR** package functionalities: set the audio player in **R** via ```setWavPlayer()``` by pointing to **Play**. You can now play the wave files by invoking the command ```play()```. See, e.g., the directions [here](http://music.informatics.indiana.edu/courses/I546/tuneR_play.pdf).], so I'll use the former, and let you do the manual work^[All the wave files produced through the code below will be saved to the *ouput* folder. You need to create it beforehand in your working directory!].
+
+```{r, echo = TRUE}
+caruso_wave <- Wave(caruso, samp.rate = 8192, bit = 16)
+writeWave(caruso_wave, filename = "output/caruso.wav")
+```
+
+You can now play the caruso.wav file on your computer^[If you are a Mac user and have followed the directions in note 4, you can play the wave data via ```play(caruso_wave)```.]. For convenience, I've also linked it [here](output/caruso.wav).
+
+## De-noising
+
+Upon hearing the recording, presence of a substantial noise on top of the signal becomes apparent. How to remove the noise? There're many cutting-edge audio de-noising techniques, but since my primary goals are illustrative, I'll stick to using the Discrete Wavelet Transform (DWT), see [@percival00]. DWT is a special kind of a linear (orthogonal) transformation. Loosely speaking, it has a property of concentrating most of the signal in a few large components (coefficients), while spreading the original noise "uniformly" in the transformed version. A wavelet approach to de-noising consists in:
+
+ * computing DWT of the raw data;
+ * squashing "small" wavelet coefficients to zero, since they contain hardly any signal, while keeping
+ "large" wavelet coefficients (essentially) unaltered; and finally,
+ * inverting the de-noised DWT, which gives a "reconstruction" of the signal.
+
+I'll use the cutting-edge empirical Bayes approach to wavelet de-noising, see [@johnstone05]. In **R**, the method is implemented in the **ebayesthresh** package.
+
+The first step is evaluation of DWT. There are several options available in **R**; I'll use the **waveslim** package. I'll compute (a partial) DWT with 2 levels of the transform^[Understanding the options I pass to ```dwt``` requires experience with wavelet transform.]. De-noising more than 2 levels appears to be too invasive in the present setting.
+
+```{r, echo = TRUE}
+caruso_dwt <- dwt(caruso, wf = "la8", n.levels = 2, boundary = "reflection")
+```
+
+The next step is de-noising the wavelet coefficients^[Understanding the options I pass to ```ebayesthresh.wavelet``` requires reading Johnstone and Silverman's paper.].
+
+```{r, echo = TRUE}
+EBayes <- ebayesthresh.wavelet(caruso_dwt, threshrule = "median",
+                               prior = "laplace", a = NA, vscale = "independent")
+```
+
+Now I'll invert the transform, and round off the obtained values to be able to play the audio file.
+
+```{r, echo = TRUE}
+caruso_ebayes <- waveslim::idwt(EBayes)[1:n] %>%
+  round()
+```
+
+Finally, I'll create and save the wave file  of the de-noised signal. It's also available for download [here](output/caruso_ebayes.wav).
+
+```{r, echo = TRUE}
+caruso_ebayes %>%
+  Wave(samp.rate = 8192, bit = 16) %>%
+  writeWave(filename = "output/caruso_ebayes.wav")
+```
+
+Listen to the file and judge for yourself. To my ears, the results aren't that brilliant: in fact, the original "noisy" version sounds more natural! (play it again to double-check)
+
+The truth is that DWT is not the most appropriate transform for audio de-noising purposes. Perhaps the same should be said of Johnstone and Silverman's empirical Bayes de-noising, as it wasn't designed in view of audio de-noising applications, and hence doesn't account for features important in that field; cf. [@wolfe04] and [@godsill07]. This despite all kinds of nice mathematical theorems established in Johnstone and Silverman's work, that deal with optimality properties of their method.
+
+## Residuals
+
+One can also judge the de-noising quality by examining the residuals that resulted from the empirical Bayes method. These residuals can be plotted, as in the figure below.
+
+```{r, echo = TRUE}
+caruso_residuals <- caruso - caruso_ebayes
+ggplot()+
+  geom_line(mapping = aes(x = 1:n, y = caruso_residuals)) +
+  xlab("n") +
+  ylab("residuals")
+```
+
+A quick visual impression is that the method has removed quite some noise there, but let's *hear* the residuals. I've also placed the wave file [here](output/caruso_residuals.wav).
+
+```{r, echo = TRUE}
+caruso_residuals %>%
+  Wave(samp.rate = 8192, bit=16) %>%
+  writeWave(filename = "output/caruso_residuals.wav")
+```
+
+It turns out that when performing de-noising, the empirical Bayes has *chopped off* a decent amount of the signal too: amidst the noise, one can clearly distinguish **Caruso**'s voice, though at a reduced volume! So in the hindsight that perhaps provides a rational explanation *why* I didn't like the de-noising outcome! You might still think otherwise, though.
+
+One possibility to "fix" things here is to use a multi-step method. That is, one can repeat the whole procedure, but now applied on the residuals from the first step. One may hope that thereby one will pile off another layer of the signal and add it to the "de-noised" reconstruction from the first step. This doesn't sound like a technique commonly considered in the statistics literature when dealing with wavelet de-noising applications, though it's been suggested elsewhere; see [@berger94].
+
+Perhaps a more important conclusion &mdash; the one that you should've read between the lines &mdash; is that in complex applications^[Real-world problems are mostly complex.], an unqualified use of the off-the-shelf algorithms and techniques might not always lead to a desired outcome. What a desired outcome is, should be judged by an appropriate performance metric^[In this document I used my perception, although it's hard to formalise its workings mathematically!], which is not necessarily the same one that an off-the-shelf algorithm is trying to optimise.
+
+And this brings the present illustrative example to completion. I hope you enjoyed reading it!
