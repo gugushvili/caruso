@@ -31,7 +31,7 @@ library(tuneR)
 library(EbayesThresh)
 ```
 
-Now the core issue. A digital signal of the aria (at the sampling rate 8192 Hz) is included in [**WaveLab**](http://statweb.stanford.edu/~wavelab/Wavelab_850/index_wavelab850.html), a free library of **Matlab** routines for wavelet analysis. No further information on the recording is provided, but it can be surmised that it was made sometime during the first decade of the 20th century^[Throughout his career, **Caruso** recorded *E lucevan le stelle* several times. The piano accompaniment that we hear in the **WaveLab** recording would fit the following discs: Path&eacute; from 1901 (matrix number 84004), Zonophone from 1902 (matrix number X 1553), or Gramophone Typewriter from 1903 (matrix number 52349).]. You can download the dataset [here](../blob/master/data/caruso.txt)^[Place the file in the folder *data* in your working directory.]. After loading the .txt file in **R**, the data can be visualised as in the plot below.
+Now the core issue. A digital signal of the aria (at the sampling rate 8192 Hz) is included in [**WaveLab**](http://statweb.stanford.edu/~wavelab/Wavelab_850/index_wavelab850.html), a free library of **Matlab** routines for wavelet analysis. No further information on the recording is provided, but it can be surmised that it was made sometime during the first decade of the 20th century^[Throughout his career, **Caruso** recorded *E lucevan le stelle* several times. The piano accompaniment that we hear in the **WaveLab** recording would fit the following discs: Path&eacute; from 1901 (matrix number 84004), Zonophone from 1902 (matrix number X 1553), or Gramophone Typewriter from 1903 (matrix number 52349).]. You can download the dataset [here](../caruso.txt)^[Place the file in the folder *data* in your working directory.]. After loading the .txt file in **R**, the data can be visualised as in the plot below.
 
 ```{r, echo = TRUE}
 n <- 48000
@@ -49,7 +49,7 @@ caruso_wave <- Wave(caruso, samp.rate = 8192, bit = 16)
 writeWave(caruso_wave, filename = "output/caruso.wav")
 ```
 
-You can now play the caruso.wav file on your computer^[If you are a Mac user and have followed the directions in note 4, you can play the wave data via ```play(caruso_wave)```.]. For convenience, I've also linked it [here](../blob/master/output/caruso.wav).
+You can now play the caruso.wav file on your computer^[If you are a Mac user and have followed the directions in note 4, you can play the wave data via ```play(caruso_wave)```.]. For convenience, I've also linked it [here](../caruso.wav).
 
 ## De-noising
 
@@ -82,7 +82,7 @@ caruso_ebayes <- waveslim::idwt(EBayes)[1:n] %>%
   round()
 ```
 
-Finally, I'll create and save the wave file  of the de-noised signal. It's also available for download [here](../blob/master/output/caruso_ebayes.wav).
+Finally, I'll create and save the wave file  of the de-noised signal. It's also available for download [here](../caruso_ebayes.wav).
 
 ```{r, echo = TRUE}
 caruso_ebayes %>%
@@ -106,7 +106,7 @@ ggplot()+
   ylab("residuals")
 ```
 
-A quick visual impression is that the method has removed quite some noise there, but let's *hear* the residuals. I've also placed the wave file [here](../blob/master/output/caruso_residuals.wav).
+A quick visual impression is that the method has removed quite some noise there, but let's *hear* the residuals. I've also placed the wave file [here](../caruso_residuals.wav).
 
 ```{r, echo = TRUE}
 caruso_residuals %>%
