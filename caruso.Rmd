@@ -52,16 +52,16 @@ You can now play the caruso.wav file on your computer^[If you are a Mac user and
 
 ## De-noising
 
-Upon hearing the recording, presence of a substantial noise on top of the signal becomes apparent. How to remove the noise? There're many cutting-edge audio de-noising techniques, but since my primary goals are illustrative, I'll stick to using the Discrete Wavelet Transform (DWT), see [@percival00]. DWT is a special kind of a linear (orthogonal) transformation. Loosely speaking, it has a property of concentrating most of the signal in a few large components (coefficients), while spreading the original noise "uniformly" in the transformed version. A wavelet approach to de-noising consists in:
+Upon hearing the recording, presence of a substantial amount of noise on top of the signal becomes apparent. How to remove this surface noise? There're many cutting-edge audio de-noising techniques, but since my primary goals are illustrative, I'll stick to using the Discrete Wavelet Transform (DWT), see [@percival00]. DWT is a special kind of a linear (orthogonal) transformation. Loosely speaking, it has a property of concentrating most of the signal in a few large components (coefficients), while spreading the original noise "uniformly" in the transformed version. A wavelet approach to de-noising consists in:
 
  * computing DWT of the raw data;
  * squashing "small" wavelet coefficients to zero, since they contain hardly any signal, while keeping
  "large" wavelet coefficients (essentially) unaltered; and finally,
  * inverting the de-noised DWT, which gives a "reconstruction" of the signal.
 
-I'll use the cutting-edge empirical Bayes approach to wavelet de-noising, see [@johnstone05]. In **R**, the method is implemented in the **ebayesthresh** package.
+I'll use the cutting-edge empirical Bayes approach to wavelet de-noising, see [@johnstone05]. In **R**, the method is implemented in the **ebayesthresh** package. Although I've been talking about de-noising all the time, it should be clear that at the end of the day I'm just doing (non-parametric) regression.
 
-The first step is evaluation of DWT. There are several options available in **R**; I'll use the **waveslim** package. I'll compute (a partial) DWT with 2 levels of the transform^[Understanding the options I pass to ```dwt``` requires experience with wavelet transform.]. De-noising more than 2 levels appears to be too invasive in the present setting.
+The first step is evaluation of DWT. There are several options available in **R**; I'll use the **waveslim** package. In particular, I'll compute (a partial) DWT with 2 levels of the transform^[Understanding the options I pass to ```dwt``` requires some knowledge of the wavelet transform.]. De-noising more than 2 levels appears to be too invasive in the present setting.
 
 ```{r, echo = TRUE}
 caruso_dwt <- dwt(caruso, wf = "la8", n.levels = 2, boundary = "reflection")
@@ -89,7 +89,7 @@ caruso_ebayes %>%
   writeWave(filename = "output/caruso_ebayes.wav")
 ```
 
-Listen to the file and judge for yourself. To my ears, the results aren't that brilliant: in fact, the original "noisy" version sounds more natural! (play it again to double-check)
+Listen to the file and judge for yourself. To my ears, the results aren't entirely satisfactory: some noise is certainly gone, but Caruso's voice in the original "noisy" version sounds more natural, spontaneous (?) (play the files again to double-check).
 
 The truth is that DWT is not the most appropriate transform for audio de-noising purposes. Perhaps the same should be said of Johnstone and Silverman's empirical Bayes de-noising, as it wasn't designed in view of audio de-noising applications, and hence doesn't account for features important in that field; cf. [@wolfe04] and [@godsill07]. This despite all kinds of nice mathematical theorems established in Johnstone and Silverman's work, that deal with optimality properties of their method.
 
@@ -113,10 +113,8 @@ caruso_residuals %>%
   writeWave(filename = "output/caruso_residuals.wav")
 ```
 
-It turns out that when performing de-noising, the empirical Bayes has *chopped off* a decent amount of the signal too: amidst the noise, one can clearly distinguish **Caruso**'s voice, though at a reduced volume! So in the hindsight that perhaps provides a rational explanation *why* I didn't like the de-noising outcome! You might still think otherwise, though.
+It turns out that when performing de-noising, the empirical Bayes has *chopped off* a decent amount of the signal too: amidst the noise, one can clearly distinguish **Caruso**'s voice, though at a reduced volume! So in the hindsight that perhaps provides a rational explanation *why* I found the de-noising outcome somewhat troubling. You might still think otherwise, though. What I like about this example is that performance of an algorithm can be assessed directly, without any math^[I don't know how to formalise workings of my perceptions mathematically.], and subjectively (which, in the end, isn't such a bad thing?).
 
-One possibility to "fix" things here is to use a multi-step method. That is, one can repeat the whole procedure, but now applied on the residuals from the first step. One may hope that thereby one will pile off another layer of the signal and add it to the "de-noised" reconstruction from the first step. This doesn't sound like a technique commonly considered in the statistics literature when dealing with wavelet de-noising applications, though it's been suggested elsewhere; see [@berger94].
-
-Perhaps a more important conclusion &mdash; the one that you should've read between the lines &mdash; is that in complex applications^[Real-world problems are mostly complex.], an unqualified use of the off-the-shelf algorithms and techniques might not always lead to a desired outcome. What a desired outcome is, should be judged by an appropriate performance metric^[In this document I used my perception, although it's hard to formalise its workings mathematically!], which is not necessarily the same one that an off-the-shelf algorithm is trying to optimise.
+One possibility to "fix" things here is to use a multi-step method. That is, one can repeat the whole procedure, but now applied on the residuals from the first step. One may hope that thereby one will pile off another layer of the signal and add it to the "de-noised" reconstruction from the first step. This doesn't sound like a technique commonly considered in the statistics literature when dealing with wavelet de-noising applications, though it's been suggested elsewhere; see [@berger94]. What is perhaps a more important conclusion is that in complex applications^[Real-world problems are mostly complex.], an unqualified use of the off-the-shelf algorithms and techniques might not always lead to a desired outcome. My results can be improved, but that requires skill, patience and time.
 
 And this brings the present illustrative example to completion. I hope you enjoyed reading it!
