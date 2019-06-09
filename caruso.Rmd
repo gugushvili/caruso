@@ -100,12 +100,21 @@ One can also judge the de-noising quality by examining the residuals that result
 ```{r, echo = TRUE}
 caruso_residuals <- caruso - caruso_ebayes
 ggplot()+
-  geom_line(mapping = aes(x = 1:n, y = caruso_residuals)) +
+  geom_point(mapping = aes(x = 1:n, y = caruso_residuals)) +
   xlab("n") +
   ylab("residuals")
 ```
 
-A quick visual impression is that the method has removed quite some noise there, but let's *hear* the residuals. I've also placed the wave file [here](output/caruso_residuals.wav).
+A quick visual impression is that the method has removed quite some noise there, although as, e.g., the plot of the residuals versus the fitted values would indicate, the residuals aren't quite healthy.
+
+```{r, echo = TRUE}
+ggplot()+
+  geom_point(mapping = aes(x = caruso_ebayes, y = caruso_residuals)) +
+  xlab("fitted values") +
+  ylab("residuals")
+```
+
+Now let's *hear* the residuals. I've also placed the wave file [here](output/caruso_residuals.wav).
 
 ```{r, echo = TRUE}
 caruso_residuals %>%
