@@ -1,10 +1,9 @@
 ---
 title: "De-noising Caruso's recording"
 knit: (function(input_file, encoding) {
-  out_dir <- 'docs';
   rmarkdown::render(input_file,
  encoding=encoding,
- output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+ output_file=file.path(dirname(input_file), 'index.html'))})
 author: "Shota Gugushvili"
 date: June 8, 2019
 output:
