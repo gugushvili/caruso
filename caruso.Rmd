@@ -1,5 +1,5 @@
 ---
-title: "De-noising Caruso's recording"
+title: "De-noising Caruso's recording in R"
 knit: (function(input_file, encoding) {
   rmarkdown::render(input_file,
  encoding=encoding,
@@ -77,7 +77,7 @@ EBayes <- ebayesthresh.wavelet(caruso_dwt, threshrule = "median",
 Now I'll invert the transform, and round off the obtained values to be able to play the audio file.
 
 ```{r, echo = TRUE}
-caruso_ebayes <- waveslim::idwt(EBayes)[1:n] %>%
+caruso_ebayes <- idwt(EBayes)[1:n] %>%
   round()
 ```
 
